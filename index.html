@@ -1,0 +1,217 @@
+<!doctype html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+		<title>RESTFul Services - a primer</title>
+
+		<link rel="stylesheet" href="css/reveal.css">
+		<link rel="stylesheet" href="css/theme/black.css">
+
+		<!-- Theme used for syntax highlighting of code -->
+		<link rel="stylesheet" href="lib/css/zenburn.css">
+
+		<!-- Printing and PDF exports -->
+		<script>
+			var link = document.createElement( 'link' );
+			link.rel = 'stylesheet';
+			link.type = 'text/css';
+			link.href = window.location.search.match( /print-pdf/gi ) ? 'css/print/pdf.css' : 'css/print/paper.css';
+			document.getElementsByTagName( 'head' )[0].appendChild( link );
+		</script>
+	</head>
+	<body>
+		<div class="reveal">
+			<div class="slides">
+				<section>
+					<h1>RESTFul Services</h1>
+					<h3>An few thoughts on REST</h3>
+					<p>
+						<small><a href="mailto:ckatzorke@gmail.com">Christian Katzorke</a></small>
+					</p>
+				</section>
+				<section>
+					<h2>It's not RESTFul....</h2>
+					<img width="300" src="assets/not-restful.jpg"/>
+				</section>
+				<section>
+					<h3>What is REST</h3>
+					<ul>
+						<li><strong>RE</strong>presentational <strong>S</strong>tate <strong>T</strong>ransfer</li>
+						<li>Architectural style</li>
+						<ul>
+							<li>Stateless</li>
+							<li>Client-server</li>
+							<li>Cacheable</li>
+							<li>Layered</li>
+							<li>Uniform Interface (resource identification and manipulation, self-descriptive, HATEOAS)</li>
+							<li>Code on demand (optional)</li>
+						</ul>
+						<li>HTTP is a RESTFul implementation</li>
+					</ul>
+				</section>
+				<section>
+					<h3>Richardson Maturity Model</h3>
+					<p>Level </p>
+					<ul>
+						<li>0 using HTTP for transport, RPC over HTTP</li>
+						<li>1 using resources</li>
+						<li>2 HTTP verbs (and status codes)</li>
+						<li>3 Hypermedia controls</li>
+					</ul>
+				</section>
+				<section>
+					<h3>Resources</h3>
+					<ul>
+						<li>Can be an object or just an abstract concept</li>
+						<li>Must be uniquely addressable</li>
+						<li>Can be a container of other resources</li>
+						<li>Canonical resource URI</li>
+					</ul>
+					<h4>Examples</h4>
+					<ul>
+						<li>https://server.com/users (all users)</li>
+						<li>https://server.com/users/89562912 (single user)</li>
+						<li>https://server.com/users/89562912/orders (nested resource, all orders)</li>
+						<li>...</li>
+					</ul>
+				</section>
+				<section>
+					<h3>Uniform Interface - Media types / content negotiation</h3>
+					<p><code>Accept</code> and <code>Content-Type</code> HTTP headers can be used to describe format for retrieving and sending the content.</p>
+					<p>Alternatively, use query parameter (<code>?format=json</code>) or URI extensions (<code>resource.xml</code>)</p>
+				</section>
+				<section>
+					<h3>Uniform Interface - HTTP verbs</h3>
+					<p>Use HTTP verbs to query and manipulate resources. Use them in the way they were meant to be used!</p>
+					<ul>
+						<li>GET</li>
+						<li>PUT</li>
+						<li>POST *</li>
+						<li>DELETE</li>
+						<li>HEAD</li>
+						<li>OPTIONS</li>
+						<li>PATCH</li>
+					</ul>
+					<p>* Not idempotent</p>
+				</section>
+				<section>
+					<h3>PUT vs POST</h3>
+					<p>Use PUT with sending the <strong>full content</strong> to create a resource</p>
+					<p>Use POST to create or update subordinates of a resource.</p>
+					<p>Use Location header in response to send the new resource URI.</p>
+					<h3>PATCH</h3>
+					<p>Designed for partial updates, list of changes provided in form of a PATCH document (e.g. application/json-patch+json).</p>
+				</section>
+				<section>
+					<h3>Uniform Interface - HTTP status codes</h3>
+					<p>Make proper use of HTTP status codes. They are the best way for describing behaviour and responses.</p>
+					<ul>
+						<li>200 OK</li>
+						<li>201 created</li>
+						<li>202 accepted</li>
+						<li>302 found (but temporarily somewhere else)</li>
+						<li>304 not modified</li>
+						<li>404 not found</li>
+						<li>409 conflict</li>
+					</ul>
+					<p>But keep it simple. No need to use all of them, no need to invent new ones.</p>
+				</section>
+				<section>
+					<h3>Hypermedia as the Engine of the Application State</h3>
+					<p>"A hypermedia-driven site provides information to navigate the site's REST interfaces dynamically by including hypermedia links with the responses."</p>
+					<p><small>https://spring.io/understanding/HATEOAS</small></p>
+					<p>Comparable to a homepage of a website.</p>
+					<pre><code class="hljs" data-trim contenteditable>
+							{
+								"name": "Alice",
+								"links": [ {
+									"rel": "self",
+									"href": "http://localhost:8080/customer/1"
+								} ]
+							}
+					</code></pre>
+				</section>
+				<section>
+					<h3>Cacheability</h3>
+					<p>Use caching for representations.</p>
+					<p>Use <code>Last-Modified</code> and <code>ETag</code> in responses and <code>If-Modified-Since</code> and <code>If-None-Match</code> in requests.
+					<br>A server can send a 304 (not modified), so you can reuse your current state representation.</p>
+				</section>
+				<section>
+					<h3>Versioning</h3>
+					<p>Version your api and your representation.</p>
+					<p>Use URI part or <code>Accept</code> content types (e.g. application/vnd.company.myapp.customer-v3+json).</p>
+					<p>A version is out-of-band information, and must not be part of URL (according to Fielding), but are more convenient to use. Use hypermedia to mitigate this.</p>
+					<p></p>
+				</section>
+				<section>
+					<h3>Common REST mistakes</h3>
+					<ul>
+						<li>Using RPC over HTTP</li>
+						<li>Overusing single verbs (esp. GET and POST)</li>
+						<li>Actions in URI (/readuser /deletecustomer)</li>
+						<li>Creating state on the server</li>
+						<li>Ignoring status codes</li>
+						<li>Ignoring caching</li>
+					</ul>
+				</section>
+				<section>
+					<h3>Example: Long running tasks</h3>
+					<pre><code class="nohighlight" data-trim contenteditable>
+						POST /jobs
+						HTTP/1.1 202 Accepted
+						Location: /queue/123 
+
+						GET /queue/123
+						HTTP/1.1 200 OK
+						{
+							"status": "pending",
+							"eta": "100"
+						}
+
+						GET /queue/123
+						HTTP/1.1 303 See other
+						Location: /jobs/5x722
+
+					</code></pre>
+
+				</section>
+
+
+				<section>
+					<h1>Resources</h1>
+					<ul>
+						<li>https://www.ics.uci.edu/~fielding/pubs/dissertation/fielding_dissertation.pdf</li>
+						<li>https://en.wikipedia.org/wiki/Representational_state_transfer</li>
+						<li>http://restcookbook.com</li>
+						<li>https://martinfowler.com/articles/richardsonMaturityModel.html</li>
+						<li>https://www.slideshare.net/cebartling/rest-web-services</li>
+						<li>https://httpstatus.es</li>
+						<li>https://spring.io/understanding/REST</li>
+						<li>https://spring.io/understanding/HATEOAS</li>
+						<li>https://www.programmableweb.com/news/api-anti-patterns-how-to-avoid-common-rest-mistakes/2010/08/13</li>
+					</ul>
+				</section>
+			</div>
+		</div>
+
+		<script src="lib/js/head.min.js"></script>
+		<script src="js/reveal.js"></script>
+
+		<script>
+			// More info about config & dependencies:
+			// - https://github.com/hakimel/reveal.js#configuration
+			// - https://github.com/hakimel/reveal.js#dependencies
+			Reveal.initialize({
+				dependencies: [
+					{ src: 'plugin/markdown/marked.js' },
+					{ src: 'plugin/markdown/markdown.js' },
+					{ src: 'plugin/notes/notes.js', async: true },
+					{ src: 'plugin/highlight/highlight.js', async: true, callback: function() { hljs.initHighlightingOnLoad(); } }
+				]
+			});
+		</script>
+	</body>
+</html>
